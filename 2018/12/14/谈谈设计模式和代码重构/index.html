@@ -1,0 +1,424 @@
+<!--
+	作者：Sariay
+	时间：2018-09-25
+	描述：There may be a bug, but don't worry, QiLing(器灵) says that it can work normally!
+-->
+
+
+	<!DOCTYPE html>
+	<html>
+		
+
+<head><meta name="generator" content="Hexo 3.8.0">
+	<title>谈谈设计模式和代码重构</title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="apple-mobile-web-app-title" content="Amaze UI">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+    <meta name="author" content="Anke">
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+   	<!-- css -->
+	<link rel="stylesheet" href="/css/style.css">
+
+	<!-- favicon -->
+	<link href="/img/favicon.ico" rel="Shortcut Icon" type="image/ico">
+	
+	<!-- font-awesome -->
+	<link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+</head>
+	<body>	
+		<!--Preloader-->
+<div id="preloader">
+	<div id="status">
+		<img alt="PRELOADER" src="/img/logo.png">
+	</div>
+</div>
+<!--Preloader end-->
+
+<!-- header -->
+
+	<header id="header-bg-2">
+
+	
+		<div id="cd-logo"><a href="/"><img src="/img/logo.png" alt="Logo"></a></div>
+	
+	
+	<!-- motto or description -->
+		
+ 		<p class="motto"></p>
+	
+	
+	<!-- current page name or title -->
+	
+		
+		
+			
+			<p class="page-name">当前文章&nbsp;:&nbsp;《谈谈设计模式和代码重构》</p>
+			
+		
+	
+	
+	<!-- others: such as change-bg, time... -->
+	<p class="page-name-other">
+		12/14/2018 
+		<style type="text/css">
+	header:after {
+		content: '';
+		position: relative;
+		top: 0;
+		left: 0;
+		height: 100%;
+		width: 100%;
+		background: #222222;
+		opacity: .5;
+		z-index: -1;
+	}
+	
+	.change-header-bg{
+		font-style: normal;
+	}
+	.change-header-bg i{
+		text-align: center;
+		cursor: pointer;
+		pointer-events: bounding-box;
+	}
+	@media(max-width:512px) {
+		.change-header-bg {
+			display: none;
+			visibility: hidden;
+		}
+	}
+	
+</style>
+
+<script type="text/javascript">
+	function changeHeaderBg(){
+		var random_bg = Math.floor(Math.random() * 9 + 1);
+		var bg = 'url(https://ankewk.github.io/Random-img/' + random_bg + '.jpg)';
+		$("#header-bg-2").css("background-image", bg);
+	}
+</script>
+
+<span class="change-header-bg">
+	——&nbsp;<i class="fa fa-camera-retro" onclick="changeHeaderBg()"></i>	
+</span>
+	</p>		
+</header>
+
+<!-- nav -->
+<div id="cd-nav">
+	<a href="#0" title="menu" class="cd-nav-trigger"><span></span></a>
+
+	<nav id="cd-main-nav">
+		<ul>
+			
+      		<li class="fa fa-/">
+           		<a href="/" title="主页">主页</a>	
+      		</li>
+    		
+    		
+        	
+		</ul>
+	</nav>
+</div>
+
+		<!--main-->
+		<main> 
+		<div class="page-container">
+		<!-- content srart -->
+<div class="am-g am-g-fixed blog-fixed blog-content">
+	<div class="am-u-md-8 am-u-sm-12">
+
+		<article class="am-article blog-article-p">
+
+			<div class="am-article-hd">
+				
+
+
+				<h1 class="am-article-title blog-text-center">
+					
+					
+	
+		<a href="/2018/12/14/谈谈设计模式和代码重构/" itemprop="url">		
+			谈谈设计模式和代码重构		
+		</a>
+	
+
+				</h1>
+
+				<p class="am-article-meta blog-text-center">
+					<span>
+						<i class="fa fa-clock-o"></i> 
+						<a href="/2018/12/14/谈谈设计模式和代码重构/" itemprop="url">
+	<time datetime="2018-12-14T12:50:39.000Z" itemprop="datePublished">
+  		2018-12-14
+  </time>
+</a>    
+&nbsp;
+					</span>
+					
+					<span>						
+						
+					</span>
+				</p>
+			</div>
+
+			<div class="am-article-bd">
+				<div class="content" id="post-content">
+					
+						<blockquote>
+<p>原创文章，翻版必究。如需转载请注明出处!</p>
+</blockquote>
+<hr>
+<h3 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h3><p>本文示例代码用PHP编写<br>本文主要是思想，代码有的是简写。</p>
+<hr>
+<h3 id="step-1-代码重构一波"><a href="#step-1-代码重构一波" class="headerlink" title="step 1 代码重构一波"></a>step 1 代码重构一波</h3><p>现在我们如下需求：我们要将一些数据进行缓存存储到redis<br>话不多说，直接上代码。此示例代码可直接运行。<br>cache类 redis实例化为简写。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">class cache</span><br><span class="line">&#123;</span><br><span class="line">    public $cacheClass;</span><br><span class="line">    public function __construct()</span><br><span class="line">    &#123;</span><br><span class="line">        $this-&gt;cacheClass = &apos;redis:&apos;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public function set($str)</span><br><span class="line">    &#123;</span><br><span class="line">        echo $this-&gt;cacheClass.$str;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class test</span><br><span class="line">&#123;</span><br><span class="line">    public function a()</span><br><span class="line">    &#123;</span><br><span class="line">        $cache = new cache();</span><br><span class="line">        $cache-&gt;set(&apos;a&apos;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public function b()</span><br><span class="line">    &#123;</span><br><span class="line">        $cache = new cache();</span><br><span class="line">        $cache-&gt;set(&apos;b&apos;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public function c()</span><br><span class="line">    &#123;</span><br><span class="line">        $cache = new cache();</span><br><span class="line">        $cache-&gt;set(&apos;c&apos;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">$test = new test();</span><br><span class="line">$test-&gt;a();</span><br><span class="line">echo &quot;&lt;br&gt;&quot;;</span><br><span class="line">$test-&gt;b();</span><br><span class="line">echo &quot;&lt;br&gt;&quot;;</span><br><span class="line">$test-&gt;c();</span><br><span class="line"></span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure></p>
+<p>上面的代码实现了我们将方法a 、b 、 c中的字符存到了redis缓存中了。<br>但是我们三个地方用了 cache这个类被实例化了3次。这显然不够优雅。<br>当然有得童鞋会说了可以这样写:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">class test</span><br><span class="line">&#123;</span><br><span class="line">    private $cache; </span><br><span class="line">    public function __construct()</span><br><span class="line">    &#123;</span><br><span class="line">        $this-&gt;cache = new cache();</span><br><span class="line">    &#125;</span><br><span class="line">    public function a()</span><br><span class="line">    &#123;</span><br><span class="line">        $this-&gt;cache-&gt;set(&apos;a&apos;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public function b()</span><br><span class="line">    &#123;</span><br><span class="line">        $this-&gt;cache-&gt;set(&apos;b&apos;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public function c()</span><br><span class="line">    &#123;</span><br><span class="line">        $this-&gt;cache-&gt;set(&apos;c&apos;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>因为这里都是在一个类里调用，可以写在构造方法里。<br>不错，这位童鞋 说明你知道如何减少不必要的重复代码。<br>其实这也算做是对代码的重构。<br>但是如果这些方法不是在一个类里呢，在多个类里呢.<br>这里我们就将示例代码变成如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">class cache</span><br><span class="line">&#123;</span><br><span class="line">    public $cacheClass;</span><br><span class="line">    public function __construct()</span><br><span class="line">    &#123;</span><br><span class="line">        $this-&gt;cacheClass = &apos;redis:&apos;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public function set($str)</span><br><span class="line">    &#123;</span><br><span class="line">        echo $this-&gt;cacheClass.$str;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class test</span><br><span class="line">&#123;</span><br><span class="line">    private $cache; </span><br><span class="line">    public function __construct()</span><br><span class="line">    &#123;</span><br><span class="line">        $this-&gt;cache = new cache();</span><br><span class="line">    &#125;</span><br><span class="line">    public function a()</span><br><span class="line">    &#123;</span><br><span class="line">        $this-&gt;cache-&gt;set(&apos;a&apos;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class test2</span><br><span class="line">&#123;</span><br><span class="line">    private $cache; </span><br><span class="line">    public function __construct()</span><br><span class="line">    &#123;</span><br><span class="line">        $this-&gt;cache = new cache();</span><br><span class="line">    &#125;</span><br><span class="line">    public function b()</span><br><span class="line">    &#123;</span><br><span class="line">        $this-&gt;cache-&gt;set(&apos;b&apos;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class test3</span><br><span class="line">&#123;</span><br><span class="line">    private $cache; </span><br><span class="line">    public function __construct()</span><br><span class="line">    &#123;</span><br><span class="line">        $this-&gt;cache = new cache();</span><br><span class="line">    &#125;</span><br><span class="line">    public function c()</span><br><span class="line">    &#123;</span><br><span class="line">        $this-&gt;cache-&gt;set(&apos;c&apos;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">$test = new test();</span><br><span class="line">$test-&gt;a();</span><br><span class="line">echo &quot;&lt;br&gt;&quot;;</span><br><span class="line">$test2 = new test2();</span><br><span class="line">$test2-&gt;b();</span><br><span class="line">echo &quot;&lt;br&gt;&quot;;</span><br><span class="line">$test3 = new test3();</span><br><span class="line">$test3-&gt;c();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure></p>
+<hr>
+<h3 id="step-2-设计模式一波"><a href="#step-2-设计模式一波" class="headerlink" title="step 2 设计模式一波"></a>step 2 设计模式一波</h3><p>设计模式：一个在程序员世界被誉为代码的最高境界。<br>随便一个程序员可能都会说上几种设计模式。<br>单例模式，观察者模式等等。。。<br>咦，好像发现了什么，这不是可以用单例模式吗？<br>心中再次默默背诵一遍，单例模式不用每次都New一个对象.<br>话不多说，单例模式改一波。<br>代码如下:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">class cache</span><br><span class="line">&#123;</span><br><span class="line">    public static function set($str)</span><br><span class="line">    &#123;</span><br><span class="line">        $cacheClass = &apos;redis:&apos;;</span><br><span class="line">        echo $cacheClass.$str;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class test</span><br><span class="line">&#123;</span><br><span class="line">    public function a()</span><br><span class="line">    &#123;</span><br><span class="line">        cache::set(&apos;a&apos;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class test2</span><br><span class="line">&#123;</span><br><span class="line">    public function b()</span><br><span class="line">    &#123;</span><br><span class="line">        cache::set(&apos;b&apos;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class test3</span><br><span class="line">&#123;</span><br><span class="line">    public function c()</span><br><span class="line">    &#123;</span><br><span class="line">        cache::set(&apos;c&apos;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">$test = new test();</span><br><span class="line">$test-&gt;a();</span><br><span class="line">echo &quot;&lt;br&gt;&quot;;</span><br><span class="line">$test2 = new test2();</span><br><span class="line">$test2-&gt;b();</span><br><span class="line">echo &quot;&lt;br&gt;&quot;;</span><br><span class="line">$test3 = new test3();</span><br><span class="line">$test3-&gt;c();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure></p>
+<p>代码一改，不错我们用单例模式解决了new 那么多次的痛点<br>心里先窃喜一波，瞬间觉得自己很强大，代码写的很优雅嘛。<br>这时候来了一个电话，需求变了。<br>test2 的b 方法要用mongodb缓存。<br>瞬间心里一万个xxx 可是然并卵 继续撸代码.</p>
+<hr>
+<h3 id="step-3-再重构一波"><a href="#step-3-再重构一波" class="headerlink" title="step 3 再重构一波"></a>step 3 再重构一波</h3><p>消耗了一万个脑细胞 灵机一动 不就是要改test2吗？<br>那我可以获取cache实例的时候将类型指定啊<br>说干就干，代码就变成了如下:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">class cache</span><br><span class="line">&#123;</span><br><span class="line">    public static function set($type,$str)</span><br><span class="line">    &#123;</span><br><span class="line">        $cacheClass = &apos;&apos;;</span><br><span class="line">        switch($type)&#123;</span><br><span class="line">            case &apos;redis&apos;:</span><br><span class="line">                $cacheClass = &apos;redis:&apos;;</span><br><span class="line">                break;</span><br><span class="line">            case &apos;mongodb&apos;:</span><br><span class="line">                $cacheClass = &apos;mongodb:&apos;;</span><br><span class="line">                break;</span><br><span class="line">            default:</span><br><span class="line">                $cacheClass = &apos;缓存不支持&apos;;    </span><br><span class="line">                break;</span><br><span class="line">        &#125;</span><br><span class="line">        echo $cacheClass.$str;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class test</span><br><span class="line">&#123;</span><br><span class="line">    public function a()</span><br><span class="line">    &#123;</span><br><span class="line">        cache::set(&apos;redis&apos;,&apos;a&apos;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class test2</span><br><span class="line">&#123;</span><br><span class="line">    public function b()</span><br><span class="line">    &#123;</span><br><span class="line">        cache::set(&apos;mongodb&apos;,&apos;b&apos;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class test3</span><br><span class="line">&#123;</span><br><span class="line">    public function c()</span><br><span class="line">    &#123;</span><br><span class="line">        cache::set(&apos;redis&apos;,&apos;c&apos;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">$test = new test();</span><br><span class="line">$test-&gt;a();</span><br><span class="line">echo &quot;&lt;br&gt;&quot;;</span><br><span class="line">$test2 = new test2();</span><br><span class="line">$test2-&gt;b();</span><br><span class="line">echo &quot;&lt;br&gt;&quot;;</span><br><span class="line">$test3 = new test3();</span><br><span class="line">$test3-&gt;c();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure></p>
+<p>完美解决！心里再暗暗窃喜一波，自己怎么这么强呢!<br>就这样风评浪静了一年，这样的模式也用在了很多地方。</p>
+<hr>
+<h3 id="step4-再重构一波"><a href="#step4-再重构一波" class="headerlink" title="step4 再重构一波"></a>step4 再重构一波</h3><p>在某一个阳光明媚的下午，睡梦中被电话吵醒！<br>现在test2的b方法要变成redis,test的a方法要变成mongodb 等等。。。。<br>很多地方的都要修改缓存的类型,<br>心中又是一万个xxx，这怎么办全文搜索替换。<br>这完全是个体力活啊，xxxxx一顿改，终于改好了。<br>内心确实无比的郁闷，心想这要是改一次就痛苦一次啊。<br>不行代码还是要重构，作为一个有追求的程序员，怎么能这样算了，忍不了。<br>消耗了一千万个脑细胞，总结下痛点的问题吧！这太多依赖了。<br>想想我能不能将这些依赖放在一个盒子里，改动以后我只要在一个地方改呢？<br>正向思维不行，我逆着来呢？突然脑袋中一个好的思路。<br>立马开始撸代码:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">class cache</span><br><span class="line">&#123;</span><br><span class="line">    </span><br><span class="line">    public static function set($type,$str)</span><br><span class="line">    &#123;</span><br><span class="line">        $cacheClass = [</span><br><span class="line">            &apos;test-a&apos; =&gt; &apos;mongodb&apos;,</span><br><span class="line">            &apos;test2-b&apos; =&gt; &apos;redis&apos;,</span><br><span class="line">            &apos;test3-c&apos; =&gt; &apos;mogodb&apos;</span><br><span class="line">        ];</span><br><span class="line">        $cacheClass = isset($cacheClass[$type]) ? $cacheClass[$type] : &apos;不支持的缓存类&apos;;</span><br><span class="line">        echo $cacheClass.$str;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class test</span><br><span class="line">&#123;</span><br><span class="line">    public function a()</span><br><span class="line">    &#123;</span><br><span class="line">        cache::set(__CLASS__.&apos;-&apos;.__FUNCTION__,&apos;a&apos;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class test2</span><br><span class="line">&#123;</span><br><span class="line">    public function b()</span><br><span class="line">    &#123;</span><br><span class="line">        cache::set(__CLASS__.&apos;-&apos;.__FUNCTION__,&apos;b&apos;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class test3</span><br><span class="line">&#123;</span><br><span class="line">    public function c()</span><br><span class="line">    &#123;</span><br><span class="line">        cache::set(__CLASS__.&apos;-&apos;.__FUNCTION__,&apos;c&apos;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">$test = new test();</span><br><span class="line">$test-&gt;a();</span><br><span class="line">echo &quot;&lt;br&gt;&quot;;</span><br><span class="line">$test2 = new test2();</span><br><span class="line">$test2-&gt;b();</span><br><span class="line">echo &quot;&lt;br&gt;&quot;;</span><br><span class="line">$test3 = new test3();</span><br><span class="line">$test3-&gt;c();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure></p>
+<p>代码改完，将所有的依赖反注入回去。<br>这样以后任他怎么改变，我只要在cache里去改他的配置就可以了。<br>再让我全局去改，就容易了很多。<br>咦，这好像是传说中的依赖注入。。。<br>瞬间脑海中飘出一句名言：实践是检验真理的唯一标准。<br>看了那么多的设计模式，也不如在代码中找到痛点并且解决痛点。<br>本文到这里就接近尾声了，不对按照惯例应该有一个总结才对.</p>
+<hr>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>再完善的文档，也不能帮你写一行代码。<br>设计模式再好，它也是前辈们在坑里总结出来的。<br>不必将设计模式想的那么神，也不必按部就班。<br>设计模式，用好受益匪浅，用不好只会让代码晦涩难懂。<br>代码重构是必须的，代码没有最完美的。<br>但是你要对自己有一个高得要求，对自己的代码有要求。<br>不然你可能一直像step 3 一样一直再干苦力活。</p>
+<p>本集终<br>不对忘记了，此处应该是插播广告时间啊！<br>编程小白想要学习编程的可以观看原创教程视频<br><a href="http://lwphp.ankewk.cn/" target="_blank" rel="noopener">http://lwphp.ankewk.cn/</a></p>
+
+					
+				</div>
+			</div>
+		</article>
+
+		<ul class="am-pagination">
+    
+	
+		<li class="am-pagination-next">
+		<a class="pull-right" href="/2018/11/04/搭建vbox+vagrant+puppet开发环境/" title="搭建vbox+vagrant+puppet开发环境">
+			下一篇 &raquo;
+		</a>
+		</li>
+	 
+ </ul>
+        
+
+		<div class="theme-annie-comment-button-container">
+	<button id="annie-comment-button" class="theme-annie-comment-button" onclick="Annie_Comment()">
+		加载评论
+		<!--加载评论-->
+	</button>
+</div>
+
+<div id="annie-comment-container" class="theme-annie-comment-main-container">
+
+	
+		
+			<!-- comment valine -->
+			<!-- show valine comment -->
+<div id="valineComment" class="comment"></div>
+
+<!-- valine`s js & css -->
+<script>
+	window.jQuery || document.write('<script src="/js/jquery-2.1.1.min.js"><\/script>')
+</script>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="/js/valine.min.js"></script>
+<link rel="stylesheet" href="/css/comment.css">
+
+<script>
+	var checkExistComment = setInterval(function() {
+		if( $('#valineComment').length ) {
+			new Valine({
+				// AV 对象来自上面引入av-min.js(老司机们不要开车➳♡゛扎心了老铁)
+				av: AV,
+				//使用id寻找div元素（使用class可能找不到）
+				el: '#valineComment',
+				emoticon_url: 'https://cloud.panjunwen.com/alu',
+				emoticon_list: ["吐.png", "期待.png", "高兴.png", "吐血倒地.png", "哭泣.png", "欢呼.png"],
+				app_id: "3333....", //获取APP ID
+				app_key: "3333......", //获取APP KEY
+				placeholder: "no any!", //评论框占位提示文字        			
+			});
+			clearInterval(checkExistComment);
+		}
+	}, 100);
+</script>
+		
+	
+
+</div>
+
+<script type="text/javascript">
+	/* Show Comment */
+	var Annie_Comment = function() {
+		function Show_Hidden(obj) {
+			obj.style.display = 'block';
+		}
+		
+		//var obutton = $('#annie-comment-button');
+		//var obutton = $('#annie-comment-container');
+		var obutton = document.getElementById("annie-comment-button" || "0");
+		var odiv = document.getElementById("annie-comment-container");
+		if( 'obutton' ) {
+			obutton.onclick = function() {
+				Show_Hidden(odiv);
+				$("#annie-comment-button").css("display", 'none');
+				return false;
+			}
+		}
+	};
+
+	(function Annie_Init() {
+		Annie_Comment();
+	})();
+</script>
+		
+		<!--
+	时间：2018-09-24
+	描述：The TOC module refers to 'https://github.com/codefine/hexo-theme-mellow', include toc.ejs、toc.js、toc.css. All rights reserved by codefine. 
+-->
+
+	
+		<aside class="post-widget">
+			<nav class="post-toc-wrap" id="post-toc">
+				
+					<strong>文章目录</strong>
+				
+				
+				<!--toc(post.content)-->
+				<ol class="post-toc"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#前言："><span class="post-toc-text">前言：</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#step-1-代码重构一波"><span class="post-toc-text">step 1 代码重构一波</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#step-2-设计模式一波"><span class="post-toc-text">step 2 设计模式一波</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#step-3-再重构一波"><span class="post-toc-text">step 3 再重构一波</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#step4-再重构一波"><span class="post-toc-text">step4 再重构一波</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#总结"><span class="post-toc-text">总结</span></a></li></ol>
+			</nav>
+			<div class="post-toc-bar"><div>
+		</div></div></aside>
+	
+
+	</div>
+</div>
+		</div>
+		</main>
+		
+		<!--footer-->
+		<footer>
+	<div class="blog-text-center">
+		<div class="theme-annie-social">
+				
+				
+					<a href="http://github.com/ankewk" title="Github" target="_blank"><i class="fa fa-github"></i>&nbsp;</a>
+					
+				
+					
+					
+						
+				
+		</div>
+	</div>
+
+	<div class="blog-text-center">
+		<div class="theme-annie-copyright">
+			
+				&copy; 2018, content by Anke. All Rights Reserved. 			   
+			
+		</div>
+	</div>
+
+	<div class="blog-text-center">
+		<div class="theme-annie-copyright">
+			<a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a> Theme <a href="https://github.com/Sariay/hexo-theme-Annie" title="Annie" target="_blank" rel="noopener">Annie</a> by Sariay.		
+		</div>
+	</div>
+</footer>
+		<!-- <script src="http://code.jquery.com/jquery-2.1.1.min.js" type="text/javascript"></script> -->
+
+<script>
+	window.jQuery || document.write('<script src="/js/jquery-2.1.1.min.js"><\/script>')
+</script>
+
+<style>
+	.motto {
+		color: #000000;
+		font-size: 20px;
+		margin: 100px 25% 0;
+		width: 50%;
+		line-height: 1.4;
+		font-family:"KaiTi", "STXingkai", "Source Sans Pro", "Segoe UI", "Lucida Grande", Helvetica, Arial, "Microsoft YaHei", FreeSans, Arimo, "Droid Sans", "wenquanyi micro hei", "Hiragino Sans GB", "Hiragino Sans GB W3", FontAwesome, sans-serif;
+		text-align: center;
+	}
+	@media(max-width: 890px) {
+		.motto {	
+			margin: 100px 10% 0;
+			width: 80%;
+		}
+	}
+	@media(max-width: 890px) {
+		.motto {
+			margin: 100px 5% 0;
+			width: 90%;
+		}
+	}
+</style>
+
+
+	<script src="/js/motto.js"></script>
+	<script type="text/javascript">
+		$(".motto").html(getMingYanContent());
+	</script>	
+
+
+
+
+
+
+
+	<script type="text/javascript" src="/js/toc.js"></script>
+
+
+<script type="text/javascript" src="/js/main.js"></script>
+
+<script type="text/javascript">
+	//generate a random img that pre_name 'from 0 to 110'
+	var random_bg = Math.floor(Math.random() * 9 + 1);
+
+	//var bg = 'url(/img/random/' + random_bg + '.jpg)';		
+	var bg = 'url(https://ankewk.github.io/Random-img/' + random_bg + '.jpg)';
+
+	$("#header-bg-2").css("background-image", bg);
+</script>
+		
+		<!--back to top-->
+        <style type="text/css">
+	#totop {
+		background: white;
+		border-radius: 50%;
+		position: fixed;
+		right: 5.4%;
+		bottom: 80px;
+		cursor: pointer;
+	}
+	
+	#totop a {
+		color: #474747;
+		background-color: transparent;
+		padding: 10px;
+		text-decoration: none;
+	}
+	
+	@media(max-width:512px) {
+		#totop {
+			display: none;
+			visibility: hidden;
+		}
+	}
+</style>
+
+
+	<div id="totop">
+  		<a href="javascript:;" class="fa fa-arrow-up"></a>
+	</div>
+
+	</body>
+	</html>
+
