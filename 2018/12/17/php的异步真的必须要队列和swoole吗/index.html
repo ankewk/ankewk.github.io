@@ -10,7 +10,7 @@
 		
 
 <head><meta name="generator" content="Hexo 3.8.0">
-	<title>搭建基于Docker+jenkins PHP持续化集成部署环境</title>
+	<title>php的异步真的必须要队列和swoole吗</title>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="apple-mobile-web-app-title" content="Amaze UI">
@@ -54,7 +54,7 @@
 		
 		
 			
-			<p class="page-name">当前文章&nbsp;:&nbsp;《搭建基于Docker+jenkins PHP持续化集成部署环境》</p>
+			<p class="page-name">当前文章&nbsp;:&nbsp;《php的异步真的必须要队列和swoole吗》</p>
 			
 		
 	
@@ -140,8 +140,8 @@
 					
 					
 	
-		<a href="/2018/11/03/基于Docker+jenkins搭建PHP持续化集成部署环境/" itemprop="url">		
-			搭建基于Docker+jenkins PHP持续化集成部署环境		
+		<a href="/2018/12/17/php的异步真的必须要队列和swoole吗/" itemprop="url">		
+			php的异步真的必须要队列和swoole吗		
 		</a>
 	
 
@@ -150,9 +150,9 @@
 				<p class="am-article-meta blog-text-center">
 					<span>
 						<i class="fa fa-clock-o"></i> 
-						<a href="/2018/11/03/基于Docker+jenkins搭建PHP持续化集成部署环境/" itemprop="url">
-	<time datetime="2018-11-03T16:47:00.993Z" itemprop="datePublished">
-  		2018-11-03
+						<a href="/2018/12/17/php的异步真的必须要队列和swoole吗/" itemprop="url">
+	<time datetime="2018-12-17T16:17:47.000Z" itemprop="datePublished">
+  		2018-12-17
   </time>
 </a>    
 &nbsp;
@@ -167,13 +167,21 @@
 			<div class="am-article-bd">
 				<div class="content" id="post-content">
 					
-						<p>PHP做为一个在web领域里最活跃的脚本语言。<br>lamp的开源组合使得很多项目都是基于PHP开发的<br>这里就介绍一下如何搭建Docker+jenkins</p>
-<h3 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt install docker</span><br></pre></td></tr></table></figure>
-<p>这里是以ubuntu为例</p>
-<h3 id="创建Jenkins容器"><a href="#创建Jenkins容器" class="headerlink" title="创建Jenkins容器"></a>创建Jenkins容器</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull jenkins/jenkins:lts</span><br></pre></td></tr></table></figure>
-<h3 id="创建你自己的容器目录"><a href="#创建你自己的容器目录" class="headerlink" title="创建你自己的容器目录"></a>创建你自己的容器目录</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir 你希望的路径</span><br></pre></td></tr></table></figure>
-<h3 id="启动Docker"><a href="#启动Docker" class="headerlink" title="启动Docker"></a>启动Docker</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo docker run -d --name jenkins -p 8000:8000 -u root \</span><br></pre></td></tr></table></figure>
-<p>在浏览器输入你的ip：8000就会进入jenkins安装页面<br>要验证管理密码 直接cat打开页面上显示的文件地址<br>将密码输入就可以进入安装了<br>so easy 有木有</p>
+						<h2 id="何为异步？为什么要用异步？"><a href="#何为异步？为什么要用异步？" class="headerlink" title="何为异步？为什么要用异步？"></a>何为异步？为什么要用异步？</h2><p>官方解释：异步处理就是按照不同步的程序处理问题。异步处理与同步处理是对立的，而产生他们的是多线程或者多进程。<br>通俗来讲，就是提高执行效率。让代码可以同时运行。<br>为什么要用异步？<br>1耗时操作，不要阻塞代码继续执行<br>2.超时时间内返回给通信的对方</p>
+<hr>
+<p>现在流行的解决方案有两个<br>1.消息队列<br>2.swoole workman等异步框架</p>
+<p>可是真的必要用这两种方案吗？很多时候我们只是跟风去给自己的代码选择方案，却没有认真想想我们为何这样选型？<br>天下武功，不是厉害的武功就一定适合你。</p>
+<hr>
+<h2 id="异步实战"><a href="#异步实战" class="headerlink" title="异步实战"></a>异步实战</h2><p>好比我们经常做的需求，导到大量数据到文件。<br>我们在web端发起请求，会一直卡在那里，直到处理完成得到返回才结束脚本执行。<br>想想我们会怎么做？<br>1.增大执行时间<br>2.shell下执行脚本<br>3.发消息给service 执行之后结果回调回来</p>
+<p>首先1的方案很多时候会造成进程卡死。<br>2的方案要记录flag记录你的异常点<br>3的方案要引入异步框架，要些service代码</p>
+<hr>
+<h2 id="简单的异步"><a href="#简单的异步" class="headerlink" title="简单的异步"></a>简单的异步</h2><p>其实异步很简单，我们做的导出数据，其实你的底层代码也是分页去读取数据</p>
+<p>那么，你的代码可以这么撸</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line"></span><br><span class="line">if(!$this-&gt;check())</span><br><span class="line">   echo &apos;可以导出&apos;;</span><br><span class="line"></span><br><span class="line">fastcgi_finish_request();</span><br><span class="line">$data::get();</span><br><span class="line"></span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
+<p>其实这时候脚本就会在后台自己运行了，但是已经返回给客户端结果了。<br>其实异步处理有的时候也是很简单的。</p>
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>凡是要多想想场景，找对属于自己的方案，不要跟着潮流走。</p>
+<p>本集终<br>不对忘记了，此处应该是插播广告时间啊！<br>编程小白想要学习编程的可以观看原创教程视频<br><a href="http://lwphp.ankewk.cn/" target="_blank" rel="noopener">http://lwphp.ankewk.cn/</a></p>
 
 					
 				</div>
@@ -182,13 +190,13 @@
 
 		<ul class="am-pagination">
     
-    	<li class="am-pagination-prev">
-   		<a class="pull-left" href="/2018/11/04/搭建vbox+vagrant+puppet开发环境/" title="搭建vbox+vagrant+puppet开发环境">
-      		&laquo; 上一篇
+	
+		<li class="am-pagination-next">
+		<a class="pull-right" href="/2018/12/14/谈谈设计模式和代码重构/" title="谈谈设计模式和代码重构">
+			下一篇 &raquo;
 		</a>
 		</li>
-	
-	
+	 
  </ul>
         
 
@@ -276,7 +284,7 @@
 				
 				
 				<!--toc(post.content)-->
-				<ol class="post-toc"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#安装Docker"><span class="post-toc-text">安装Docker</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#创建Jenkins容器"><span class="post-toc-text">创建Jenkins容器</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#创建你自己的容器目录"><span class="post-toc-text">创建你自己的容器目录</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#启动Docker"><span class="post-toc-text">启动Docker</span></a></li></ol>
+				<ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#何为异步？为什么要用异步？"><span class="post-toc-text">何为异步？为什么要用异步？</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#异步实战"><span class="post-toc-text">异步实战</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#简单的异步"><span class="post-toc-text">简单的异步</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#总结"><span class="post-toc-text">总结</span></a></li></ol>
 			</nav>
 			<div class="post-toc-bar"><div>
 		</div></div></aside>
